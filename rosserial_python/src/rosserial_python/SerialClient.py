@@ -322,7 +322,9 @@ class SerialClient:
         else:
             # open a specific port
             try:
-                self.port = Serial(port, baud, timeout=self.timeout*0.5)
+                self.port = Serial(port, 0, timeout=self.timeout*0.5)
+                self.port.baudrate = baud
+                time.sleep(2.0)   # Give modem time to reset
             except SerialException as e:
                 rospy.logerr("Error opening serial: %s", e)
                 rospy.signal_shutdown("Error opening serial: %s" % e)
