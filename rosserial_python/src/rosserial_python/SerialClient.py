@@ -384,9 +384,11 @@ class SerialClient:
                 self.lastsync = rospy.Time.now()
 
             flag = [0,0]
+            print "waiting for flag..."
             flag[0]  = self.port.read(1)
             if (flag[0] != '\xff'):                
                 continue
+            print "waiting for flag[1]..."
             flag[1] = self.port.read(1)
             if ( flag[1] != self.protocol_ver):
                 self.sendDiagnostics(diagnostic_msgs.msg.DiagnosticStatus.ERROR, "Mismatched protocol version in packet: lost sync or rosserial_python is from different ros release than the rosserial client")
@@ -398,6 +400,7 @@ class SerialClient:
                     found_ver_msg = "Protocol version of client is unrecognized"
                 rospy.loginfo("%s, expected %s" % (found_ver_msg, protocol_ver_msgs[self.protocol_ver]))
                 continue
+            print "waiting for messing len(2)..."
             msg_len_bytes = self.port.read(2)
             if len(msg_len_bytes) != 2:
                 continue
@@ -405,6 +408,7 @@ class SerialClient:
             msg_length, = struct.unpack("<h", msg_len_bytes)
 
             # checksum of msg_len
+            print "waiting for msg_len_chk..."
             msg_len_chk = self.port.read(1)
             if len(msg_len_chk) != 1:
                 continue
@@ -416,11 +420,13 @@ class SerialClient:
                 continue
 
             # topic id (2 bytes)
+            print "waiting for topic_id_header..."
             topic_id_header = self.port.read(2)
             if len(topic_id_header)!=2:
                 continue
             topic_id, = struct.unpack("<h", topic_id_header)
 
+            print "waiting to read msg..."
             msg = self.port.read(msg_length)
             if (len(msg) != msg_length):
                 self.sendDiagnostics(diagnostic_msgs.msg.DiagnosticStatus.ERROR, "Packet Failed :  Failed to read msg data")
@@ -430,6 +436,7 @@ class SerialClient:
                 continue
 
             # checksum for topic id and msg
+            print "Waiting to recv chk..."
             chk = self.port.read(1)
             if len(chk) != 1:
                 continue            
